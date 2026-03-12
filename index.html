@@ -1,0 +1,2345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Administration – Bernède Caoutchouc SARL</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rouge: #C0392B;
+    --rouge-dark: #922B21;
+    --rouge-light: #F1948A;
+    --noir: #1A1A1A;
+    --gris-fonce: #2D2D2D;
+    --gris: #5A5A5A;
+    --gris-clair: #B0B0B0;
+    --fond: #F5F0EB;
+    --fond-carte: #FDFAF7;
+    --blanc: #FFFFFF;
+    --accent: #E8DDD4;
+    --vert-ok: #27AE60;
+    --orange: #E67E22;
+    --bleu: #2980B9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--fond);
+    color: var(--noir);
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--noir);
+    color: var(--blanc);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-badge {
+    width: 44px; height: 44px;
+    background: var(--rouge);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -1px;
+  }
+  .logo-text h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+  .logo-text p {
+    font-size: 11px;
+    color: var(--gris-clair);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .header-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--gris-clair);
+  }
+  .progress-bar-wrap {
+    width: 160px;
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--rouge);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: calc(100vh - 77px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--blanc);
+    border-right: 1px solid var(--accent);
+    position: sticky;
+    top: 77px;
+    height: calc(100vh - 77px);
+    overflow-y: auto;
+    padding: 24px 0;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gris-clair);
+    padding: 0 24px;
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+  .sidebar-section-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: var(--gris);
+    text-decoration: none;
+    user-select: none;
+  }
+  .nav-item:hover {
+    background: var(--fond);
+    color: var(--noir);
+    border-left-color: var(--rouge-light);
+  }
+  .nav-item.active {
+    background: #FEF3F2;
+    color: var(--rouge-dark);
+    border-left-color: var(--rouge);
+    font-weight: 500;
+  }
+  .nav-item .nav-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .nav-item.active .nav-icon { background: var(--rouge); }
+  .nav-item .nav-num {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--gris-clair);
+    font-weight: 400;
+  }
+  .nav-item.done .nav-icon::after { content: '✓'; }
+  .nav-item.done { opacity: 0.6; }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    flex: 1;
+    padding: 40px;
+    overflow-x: hidden;
+  }
+
+  /* ─── SECTION ─── */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.visible { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .section-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: -8px;
+  }
+  .section-title-wrap h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--noir);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .section-title-wrap .section-subtitle {
+    font-size: 14px;
+    color: var(--gris);
+    font-style: italic;
+  }
+  .section-tag {
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .tag-logistique { background: #EBF5FB; color: var(--bleu); }
+  .tag-comptable { background: #FEF3F2; color: var(--rouge); }
+  .tag-stock { background: #EAFAF1; color: var(--vert-ok); }
+  .tag-client { background: #FEF9EB; color: var(--orange); }
+  .tag-quotidien { background: #F4ECF7; color: #8E44AD; }
+
+  /* ─── STEP CARDS ─── */
+  .steps-container { display: flex; flex-direction: column; gap: 24px; }
+
+  .step-card {
+    background: var(--fond-carte);
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .step-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+
+  .step-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-badge {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--rouge);
+    color: var(--blanc);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-card-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .step-toggle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: transform 0.3s, background 0.2s;
+    flex-shrink: 0;
+  }
+  .step-card.open .step-toggle { transform: rotate(180deg); background: var(--rouge); color: var(--blanc); }
+
+  .step-card-body {
+    display: none;
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--accent);
+    margin-top: 0;
+  }
+  .step-card.open .step-card-body { display: block; }
+  .step-card-body-inner { padding-top: 20px; }
+
+  /* ─── CONTENT ELEMENTS ─── */
+  .info-box {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .info-box.rouge { background: #FEF3F2; border-left: 4px solid var(--rouge); color: var(--rouge-dark); }
+  .info-box.bleu { background: #EBF5FB; border-left: 4px solid var(--bleu); color: #1A5276; }
+  .info-box.vert { background: #EAFAF1; border-left: 4px solid var(--vert-ok); color: #1E8449; }
+  .info-box.orange { background: #FEF9EB; border-left: 4px solid var(--orange); color: #784212; }
+  .info-box.gris { background: var(--fond); border-left: 4px solid var(--gris-clair); color: var(--gris-fonce); }
+  .info-box-icon { font-size: 20px; flex-shrink: 0; }
+
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 10px 14px;
+    background: var(--fond);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .checklist li:hover { background: var(--accent); }
+  .checklist li.checked { text-decoration: line-through; opacity: 0.55; background: #EAFAF1; }
+  .checklist li::before {
+    content: '○';
+    color: var(--rouge);
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+  .checklist li.checked::before { content: '✓'; color: var(--vert-ok); }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .field-item {
+    background: var(--fond);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--accent);
+  }
+  .field-item .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gris);
+    margin-bottom: 4px;
+  }
+  .field-item .field-value {
+    font-size: 14px;
+    color: var(--noir);
+    font-weight: 500;
+  }
+  .field-item .field-value.highlight { color: var(--rouge); font-weight: 600; }
+  .field-item .field-value.code {
+    font-family: monospace;
+    background: var(--accent);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  .option-card {
+    background: var(--fond);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 18px;
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+  .option-card:hover { border-color: var(--rouge-light); }
+  .option-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .option-card p { font-size: 13px; color: var(--gris); line-height: 1.6; }
+
+  .code-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .code-table th {
+    background: var(--noir);
+    color: var(--blanc);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .code-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--accent);
+    vertical-align: top;
+  }
+  .code-table tr:nth-child(even) td { background: var(--fond); }
+  .code-table td:first-child { font-family: monospace; font-weight: 700; color: var(--rouge); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-rouge { background: #FEF3F2; color: var(--rouge-dark); }
+  .badge-vert { background: #EAFAF1; color: var(--vert-ok); }
+  .badge-bleu { background: #EBF5FB; color: var(--bleu); }
+
+  .nav-path {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    background: var(--noir);
+    color: var(--blanc);
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .nav-path span { color: var(--gris-clair); }
+  .nav-path strong { color: var(--rouge-light); font-weight: 600; }
+  .nav-arrow { color: var(--gris-clair); font-size: 11px; }
+
+  .tarif-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .tarif-card {
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .tarif-card.client { background: #FEF3F2; border: 2px solid #F1948A; }
+  .tarif-card.artisan { background: #EBF5FB; border: 2px solid #85C1E9; }
+  .tarif-card.grossiste { background: #EAFAF1; border: 2px solid #82E0AA; }
+  .tarif-card .tarif-type { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gris); margin-bottom: 4px; }
+  .tarif-card .tarif-who { font-size: 13px; color: var(--gris-fonce); margin-bottom: 8px; }
+  .tarif-card .tarif-pct { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; }
+  .tarif-card.client .tarif-pct { color: var(--rouge-dark); }
+  .tarif-card.artisan .tarif-pct { color: var(--bleu); }
+  .tarif-card.grossiste .tarif-pct { color: var(--vert-ok); }
+
+  hr.divider { border: none; border-top: 1px solid var(--accent); margin: 20px 0; }
+
+  p.body-text { font-size: 14px; line-height: 1.7; color: var(--gris-fonce); margin-bottom: 14px; }
+
+  h4.sub-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--noir);
+    margin-bottom: 10px;
+    margin-top: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── TIMELINE ─── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background: var(--accent); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-item::before {
+    content:'';
+    position:absolute;
+    left:-22px;
+    top:4px;
+    width:12px; height:12px;
+    border-radius:50%;
+    background: var(--rouge);
+    border: 2px solid var(--fond-carte);
+  }
+  .timeline-item h4 { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-item p { font-size: 13px; color: var(--gris); line-height: 1.5; }
+
+  /* ─── BOTTOM NAV ─── */
+  .bottom-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--accent);
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--rouge); color: var(--blanc); }
+  .btn-primary:hover { background: var(--rouge-dark); }
+  .btn-secondary { background: var(--accent); color: var(--gris-fonce); }
+  .btn-secondary:hover { background: var(--gris-clair); color: var(--blanc); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ─── HOME ─── */
+  .home-hero {
+    background: var(--noir);
+    border-radius: 20px;
+    padding: 48px;
+    color: var(--blanc);
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-hero::before {
+    content: 'BC';
+    position: absolute;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Syne', sans-serif;
+    font-size: 160px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .home-hero h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .home-hero h2 span { color: var(--rouge-light); }
+  .home-hero p { font-size: 15px; color: rgba(255,255,255,0.6); max-width: 520px; line-height: 1.7; margin-bottom: 24px; }
+  .home-hero .hero-meta { font-size: 12px; color: rgba(255,255,255,0.35); letter-spacing: 1px; text-transform: uppercase; }
+
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .process-tile {
+    background: var(--fond-carte);
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .process-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    border-color: var(--rouge-light);
+  }
+  .process-tile .tile-icon { font-size: 28px; margin-bottom: 12px; }
+  .process-tile .tile-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--noir);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .process-tile .tile-desc { font-size: 12px; color: var(--gris); line-height: 1.5; }
+  .process-tile .tile-num {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 20px; }
+    .home-hero { padding: 28px; }
+    .home-hero h2 { font-size: 24px; }
+    .tarif-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-badge" style="background:transparent;padding:2px;"><img src="https://primary.jwwb.nl/public/m/n/h/temp-gblzjusjfkhpwqgcpocj/logo-removebg-preview-high.png?enable-io=true&enable=upscale&height=70" alt="Bernède Caoutchouc" style="width:44px;height:44px;object-fit:contain;display:block;"></div>
+      <div class="logo-text">
+        <h1>Bernède Caoutchouc SARL</h1>
+        <p>Guide des processus administratifs</p>
+      </div>
+    </div>
+    <div class="header-progress">
+      <span id="progressLabel">0 / 9 sections</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section-label">Navigation</div>
+    <div class="nav-item active" onclick="showSection('home', this)">
+      <div class="nav-icon">🏠</div>
+      <span>Accueil</span>
+    </div>
+
+    <div class="sidebar-section-label">Expédition</div>
+    <div class="nav-item" onclick="showSection('dpd', this)">
+      <div class="nav-icon">📦</div>
+      <span>Envoi DPD</span>
+      <span class="nav-num">1</span>
+    </div>
+
+    <div class="sidebar-section-label">Clients</div>
+    <div class="nav-item" onclick="showSection('client', this)">
+      <div class="nav-icon">👤</div>
+      <span>Création compte client</span>
+      <span class="nav-num">2</span>
+    </div>
+
+    <div class="sidebar-section-label">Factures fournisseurs</div>
+    <div class="nav-item" onclick="showSection('factures1', this)">
+      <div class="nav-icon">📝</div>
+      <span>Étape 1 – Codification</span>
+      <span class="nav-num">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('factures2', this)">
+      <div class="nav-icon">💻</div>
+      <span>Étape 2 – Saisie WinBiz</span>
+      <span class="nav-num">4</span>
+    </div>
+    <div class="nav-item" onclick="showSection('factures3', this)">
+      <div class="nav-icon">📊</div>
+      <span>Étape 3 – Cash-Flow</span>
+      <span class="nav-num">5</span>
+    </div>
+    <div class="nav-item" onclick="showSection('paiement', this)">
+      <div class="nav-icon">💳</div>
+      <span>Paiement (mercredis)</span>
+      <span class="nav-num">6</span>
+    </div>
+
+    <div class="sidebar-section-label">Stock & Ventes</div>
+    <div class="nav-item" onclick="showSection('marchandise', this)">
+      <div class="nav-icon">🚚</div>
+      <span>Entrée de marchandise</span>
+      <span class="nav-num">7</span>
+    </div>
+    <div class="nav-item" onclick="showSection('envoi_factures', this)">
+      <div class="nav-icon">✉️</div>
+      <span>Envoi factures clients</span>
+      <span class="nav-num">8</span>
+    </div>
+    <div class="nav-item" onclick="showSection('stocks', this)">
+      <div class="nav-icon">📦</div>
+      <span>Mouvements de stocks</span>
+      <span class="nav-num">9</span>
+    </div>
+    <div class="nav-item" onclick="showSection('caisse', this)">
+      <div class="nav-icon">🧾</div>
+      <span>Encaissement journalier</span>
+      <span class="nav-num">10</span>
+    </div>
+
+    <div class="sidebar-section-label">Référence</div>
+    <div class="nav-item" onclick="showSection('docs', this)">
+      <div class="nav-icon">📄</div>
+      <span>Documents commerciaux</span>
+    </div>
+
+    <div class="sidebar-section-label">Outils & Digital</div>
+    <div class="nav-item" onclick="showSection('webador', this)">
+      <div class="nav-icon">🌐</div>
+      <span>Site Web – Webador</span>
+    </div>
+    <div class="nav-item" onclick="showSection('ia', this)">
+      <div class="nav-icon">🤖</div>
+      <span>IA & Automatisation</span>
+    </div>
+    <div class="nav-item" onclick="showSection('offres', this)">
+      <div class="nav-icon">📨</div>
+      <span>Offres automatiques</span>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ════ HOME ════ -->
+    <section id="sec-home" class="section visible">
+      <div class="home-hero">
+        <h2>Process<br><span>Administration</span></h2>
+        <p>Guide interactif des procédures administratives de Bernède Caoutchouc SARL. Naviguez dans les sections pour retrouver chaque processus détaillé étape par étape.</p>
+        <div class="hero-meta">Bernède Caoutchouc SARL · Neuchâtel · 2025</div>
+      </div>
+
+      <div class="process-grid">
+        <div class="process-tile" onclick="showSection('dpd', document.querySelector('[onclick*=\"dpd\"]'))">
+          <div class="tile-num">1</div>
+          <div class="tile-icon">📦</div>
+          <div class="tile-title">Envoi DPD</div>
+          <div class="tile-desc">Saisie et gestion des colis</div>
+        </div>
+        <div class="process-tile" onclick="showSection('client', document.querySelector('[onclick*=\"client\"]'))">
+          <div class="tile-num">2</div>
+          <div class="tile-icon">👤</div>
+          <div class="tile-title">Compte client</div>
+          <div class="tile-desc">Création et paramétrage</div>
+        </div>
+        <div class="process-tile" onclick="showSection('factures1', document.querySelector('[onclick*=\"factures1\"]'))">
+          <div class="tile-num">3</div>
+          <div class="tile-icon">📝</div>
+          <div class="tile-title">Factures fournisseurs</div>
+          <div class="tile-desc">3 étapes : codes → WinBiz → Cash-Flow</div>
+        </div>
+        <div class="process-tile" onclick="showSection('paiement', document.querySelector('[onclick*=\"paiement\"]'))">
+          <div class="tile-num">4</div>
+          <div class="tile-icon">💳</div>
+          <div class="tile-title">Paiements</div>
+          <div class="tile-desc">Chaque mercredi</div>
+        </div>
+        <div class="process-tile" onclick="showSection('marchandise', document.querySelector('[onclick*=\"marchandise\"]'))">
+          <div class="tile-num">5</div>
+          <div class="tile-icon">🚚</div>
+          <div class="tile-title">Marchandise</div>
+          <div class="tile-desc">Réception et stocks</div>
+        </div>
+        <div class="process-tile" onclick="showSection('envoi_factures', document.querySelector('[onclick*=\"envoi_factures\"]'))">
+          <div class="tile-num">6</div>
+          <div class="tile-icon">✉️</div>
+          <div class="tile-title">Factures clients</div>
+          <div class="tile-desc">Envoi email et courrier</div>
+        </div>
+        <div class="process-tile" onclick="showSection('stocks', document.querySelector('[onclick*=\"stocks\"]'))">
+          <div class="tile-num">7</div>
+          <div class="tile-icon">📦</div>
+          <div class="tile-title">Stocks</div>
+          <div class="tile-desc">Corrections et mouvements</div>
+        </div>
+        <div class="process-tile" onclick="showSection('caisse', document.querySelector('[onclick*=\"caisse\"]'))">
+          <div class="tile-num">8</div>
+          <div class="tile-icon">🧾</div>
+          <div class="tile-title">Encaissement</div>
+          <div class="tile-desc">Calcul journalier en fin de journée</div>
+        </div>
+        <div class="process-tile" onclick="showSection('docs', document.querySelector('[onclick*=\"docs\"]'))">
+          <div class="tile-num">9</div>
+          <div class="tile-icon">📄</div>
+          <div class="tile-title">Documents</div>
+          <div class="tile-desc">Référentiel des documents commerciaux</div>
+        </div>
+        <div class="process-tile" onclick="showSection('webador', document.querySelector('[onclick*=\"webador\"]'))" style="border-color:#3498DB;">
+          <div class="tile-num" style="color:#D6EAF8;">W</div>
+          <div class="tile-icon">🌐</div>
+          <div class="tile-title">Site Web Webador</div>
+          <div class="tile-desc">Modifier le site bernede-caoutchouc.ch</div>
+        </div>
+        <div class="process-tile" onclick="showSection('ia', document.querySelector('[onclick*=\"ia\"]'))" style="border-color:#9B59B6;">
+          <div class="tile-num" style="color:#E8DAEF;">IA</div>
+          <div class="tile-icon">🤖</div>
+          <div class="tile-title">IA & Automatisation</div>
+          <div class="tile-desc">Claude, Excel, gain de temps</div>
+        </div>
+        <div class="process-tile" onclick="showSection('offres', document.querySelector('[onclick*=\"offres\"]'))" style="border-color:#27AE60;">
+          <div class="tile-num" style="color:#D5F5E3;">FO</div>
+          <div class="tile-icon">📨</div>
+          <div class="tile-title">Offres automatiques</div>
+          <div class="tile-desc">FollowOffer – envoi & relances auto</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ DPD ════ -->
+    <section id="sec-dpd" class="section">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <div class="section-title-wrap">
+          <h2>Envoi DPD</h2>
+          <p class="section-subtitle">Saisie des colis et génération de la liste journalière</p>
+        </div>
+        <span class="section-tag tag-logistique">Logistique</span>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Saisir un nouveau colis</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>dpd.com</strong> <span class="nav-arrow">›</span> <span>Envois</span> <span class="nav-arrow">›</span> <strong>+</strong> (bouton nouveau)
+              </div>
+              <p class="body-text">Cliquer sur le <strong>+</strong> dans l'interface DPD pour saisir un nouveau colis à envoyer.</p>
+              <h4 class="sub-title">Champs à remplir</h4>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Destinataire</div>
+                  <div class="field-value">Rechercher dans le carnet d'adresses (souvent déjà enregistré)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Produit</div>
+                  <div class="field-value highlight">Toujours « DPD Classic »</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Nombre de colis</div>
+                  <div class="field-value">Selon la commande</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Poids</div>
+                  <div class="field-value">Peser et inscrire le poids exact (kg)</div>
+                </div>
+              </div>
+              <div class="info-box bleu">
+                <div class="info-box-icon">💡</div>
+                <div>Si l'adresse est déjà dans le carnet, les données s'affichent automatiquement. Vérifier quand même l'adresse de livraison.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Générer la liste journalière</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">En fin de journée, sélectionner <strong>tous les colis envoyés ce jour</strong> et cliquer sur le bouton d'impression de liste journalière.</p>
+              <h4 class="sub-title">Checklist de fin de journée</h4>
+              <ul class="checklist" id="dpd-check">
+                <li onclick="toggleCheck(this)">Sélectionner tous les colis du jour dans l'interface DPD</li>
+                <li onclick="toggleCheck(this)">Cliquer sur le bouton d'impression (icône liste)</li>
+                <li onclick="toggleCheck(this)">Imprimer la liste journalière</li>
+                <li onclick="toggleCheck(this)">Classer la liste dans le <strong>classeur DPD</strong>, à la suite des précédentes</li>
+              </ul>
+              <div class="info-box vert">
+                <div class="info-box-icon">✅</div>
+                <div>La liste indique : numéros de colis, adresses destinataires, poids. Elle sert de preuve d'envoi.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('home', document.querySelector('[onclick*=\"home\"]'))">← Accueil</button>
+        <button class="btn btn-primary" onclick="showSection('client', document.querySelector('[onclick*=\"client\"]'))">Suivant : Compte client →</button>
+      </div>
+    </section>
+
+    <!-- ════ CLIENT ════ -->
+    <section id="sec-client" class="section">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <div class="section-title-wrap">
+          <h2>Création d'un compte client</h2>
+          <p class="section-subtitle">WinBiz – Carnet d'adresses</p>
+        </div>
+        <span class="section-tag tag-client">Client</span>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Identification – Données générales</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>WinBiz</strong> <span class="nav-arrow">›</span> <span>Adresses</span> <span class="nav-arrow">›</span> <span>Carnet d'adresses</span> <span class="nav-arrow">›</span> <strong>Nouveau</strong>
+              </div>
+              <h4 class="sub-title">Onglet Identification</h4>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Raison sociale</div>
+                  <div class="field-value">Vérifier sur <strong>Local.ch</strong> si besoin</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Nom & Prénom</div>
+                  <div class="field-value">Si possible (contact principal)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Rue & N°</div>
+                  <div class="field-value">Adresse complète</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">NPA & Ville</div>
+                  <div class="field-value">Code postal et localité</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Téléphone(s)</div>
+                  <div class="field-value">Tous les numéros disponibles</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">E-mail</div>
+                  <div class="field-value">Email principal du client</div>
+                </div>
+              </div>
+              <h4 class="sub-title">Code adresse (feuille « Nouveau FO / Clients P1-P2/P3 »)</h4>
+              <div class="two-col">
+                <div class="option-card">
+                  <h4>📊 P1 & P2</h4>
+                  <p>Codes pour les <strong>grossistes</strong> et <strong>artisans</strong> (entreprises professionnelles)</p>
+                </div>
+                <div class="option-card">
+                  <h4>👤 P3</h4>
+                  <p>Codes pour les <strong>privés</strong> (C30)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Débiteur – Paramètres comptables</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <h4 class="sub-title">Onglet Débiteur – Champs obligatoires</h4>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Compte collectif débiteur</div>
+                  <div class="field-value highlight">1050 Clients — TOUJOURS !</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Banque par défaut</div>
+                  <div class="field-value highlight">Banque Cantonale Neuchâteloise 1021 — TOUJOURS !</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Présentation des factures</div>
+                  <div class="field-value code">QR BERNEDE (1)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Cond. de paiement</div>
+                  <div class="field-value">Paiement d'avance au début, puis net 30 jours une fois le client vérifié</div>
+                </div>
+              </div>
+              <hr class="divider">
+              <h4 class="sub-title">Table de prix (tarification)</h4>
+              <div class="tarif-grid">
+                <div class="tarif-card client">
+                  <div class="tarif-type">Clients privés</div>
+                  <div class="tarif-who">Particuliers</div>
+                  <div class="tarif-pct">Prix plein</div>
+                </div>
+                <div class="tarif-card artisan">
+                  <div class="tarif-type">Artisans</div>
+                  <div class="tarif-who">Entreprises, serruriers...</div>
+                  <div class="tarif-pct">−15%</div>
+                </div>
+                <div class="tarif-card grossiste">
+                  <div class="tarif-type">Grossistes</div>
+                  <div class="tarif-who">Quincailleries</div>
+                  <div class="tarif-pct">−30%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">3</div>
+            <h3>Groupes & Notes</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <h4 class="sub-title">Onglet Groupes</h4>
+              <p class="body-text">Attribuer le groupe qui correspond à l'entreprise enregistrée. Exemple : un bijoutier → <strong>Ateliers/selliers/déco/magasins/photos/sol</strong></p>
+              <div class="info-box bleu">
+                <div class="info-box-icon">📝</div>
+                <div>Ajouter également le groupe <strong>Débiteurs</strong> pour tous les clients qui paient par facture.</div>
+              </div>
+              <hr class="divider">
+              <h4 class="sub-title">Onglet Notes</h4>
+              <p class="body-text">Dans <strong>Notes publiques</strong>, inscrire l'adresse e-mail de facturation au format :</p>
+              <div class="info-box gris">
+                <div class="info-box-icon">📧</div>
+                <div><code>FA : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="177673657264647257727a767e7b3974787a">[email&#160;protected]</a></code><br>Cette note apparaît automatiquement lors de l'ouverture du client sur un bulletin de livraison.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('dpd', document.querySelector('[onclick*=\"dpd\"]'))">← DPD</button>
+        <button class="btn btn-primary" onclick="showSection('factures1', document.querySelector('[onclick*=\"factures1\"]'))">Suivant : Factures étape 1 →</button>
+      </div>
+    </section>
+
+    <!-- ════ FACTURES 1 ════ -->
+    <section id="sec-factures1" class="section">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <div class="section-title-wrap">
+          <h2>Factures – 1ère étape</h2>
+          <p class="section-subtitle">Codification manuelle des factures papier</p>
+        </div>
+        <span class="section-tag tag-comptable">Comptabilité</span>
+      </div>
+
+      <p class="body-text">Prendre les factures dans le classeur <strong>« Fournisseurs en attente de FA »</strong> et inscrire les bons codes comptables sur chaque facture.</p>
+
+      <h4 class="sub-title">Codes comptables à appliquer</h4>
+      <table class="code-table">
+        <tr><th>Code</th><th>Désignation</th><th>Usage</th></tr>
+        <tr><td>3000</td><td>Articles stock</td><td>Marchandises achetées pour stock</td></tr>
+        <tr><td>3010</td><td>Hors stock</td><td>Articles non stockés</td></tr>
+        <tr><td>3011</td><td>Frais de transport</td><td>Frais de port sur la facture</td></tr>
+        <tr><td>4070</td><td>Caisse cantonale NE compensation</td><td>Exemple d'autre code spécifique</td></tr>
+      </table>
+
+      <div class="info-box orange">
+        <div class="info-box-icon">⚠️</div>
+        <div>Inscrire le <strong>code comptable</strong> ainsi que la <strong>somme correspondante</strong> sur chaque facture papier. En cas de plusieurs codes, inscrire chaque ligne séparément.</div>
+      </div>
+
+      <h4 class="sub-title">Correspondance avec les entrées de marchandises</h4>
+      <div class="timeline">
+        <div class="timeline-item">
+          <h4>Inscrire le N° de facture</h4>
+          <p>Sur l'entrée de marchandise correspondante, noter le numéro de la facture du fournisseur.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>Inscrire la date de la facture</h4>
+          <p>La date de la facture (pas la date de réception) est celle qui compte pour le classement.</p>
+        </div>
+        <div class="timeline-item">
+          <h4>Classer dans le bon classeur mensuel</h4>
+          <p>Classeur <strong>« Entrées de marchandises »</strong> – plusieurs classeurs par mois. Classer selon la <strong>date de la facture</strong>.</p>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('client', document.querySelector('[onclick*=\"client\"]'))">← Compte client</button>
+        <button class="btn btn-primary" onclick="showSection('factures2', document.querySelector('[onclick*=\"factures2\"]'))">Suivant : Saisie WinBiz →</button>
+      </div>
+    </section>
+
+    <!-- ════ FACTURES 2 ════ -->
+    <section id="sec-factures2" class="section">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <div class="section-title-wrap">
+          <h2>Factures – 2e étape</h2>
+          <p class="section-subtitle">Saisie des factures dans WinBiz</p>
+        </div>
+        <span class="section-tag tag-comptable">Comptabilité</span>
+      </div>
+
+      <div class="nav-path">
+        <strong>WinBiz</strong> <span class="nav-arrow">›</span> <span>Achats</span> <span class="nav-arrow">›</span> <span>Factures de créanciers</span> <span class="nav-arrow">›</span> <strong>Nouveau</strong>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">A</div>
+            <h3>Cas 1 – Virement en Suisse ou à l'étranger</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="info-box bleu">
+                <div class="info-box-icon">🏦</div>
+                <div>Utiliser cette option lorsque l'<strong>IBAN est déjà enregistré</strong> dans WinBiz. Ex : Maagtechnic, MK-Dichtungen…</div>
+              </div>
+              <h4 class="sub-title">Remplir les champs</h4>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Nom fournisseur</div>
+                  <div class="field-value">Taper le nom → infos apparaissent automatiquement</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Date de la facture</div>
+                  <div class="field-value">Date figurant sur la facture papier</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">N° de la facture</div>
+                  <div class="field-value">Numéro du fournisseur (à inscrire aussi sur la facture papier !)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Monnaie</div>
+                  <div class="field-value">Locale (CHF) ou EUR pour devises étrangères</div>
+                </div>
+              </div>
+              <div class="info-box orange">
+                <div class="info-box-icon">✏️</div>
+                <div>Le numéro de document WinBiz généré doit être <strong>inscrit en haut de la facture papier</strong> !</div>
+              </div>
+              <hr class="divider">
+              <h4 class="sub-title">Onglet Détail – Saisir les lignes comptables</h4>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Cliquer sur la ligne 1 pour saisir le premier code</li>
+                <li onclick="toggleCheck(this)">Article → Prix = somme du code, Compte = code comptable</li>
+                <li onclick="toggleCheck(this)">Prix HT ou TTC : mettre <strong>« TVA exclue »</strong> (TVA calculée automatiquement)</li>
+                <li onclick="toggleCheck(this)">Si plusieurs codes : cliquer <strong>« Nouveau »</strong> pour ajouter une ligne</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">B</div>
+            <h3>Cas 2 – QR-facture</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="info-box gris">
+                <div class="info-box-icon">📱</div>
+                <div>Option utilisée lorsque l'<strong>IBAN n'est pas connu</strong>. On saisit les données du QR code présent sur la facture.</div>
+              </div>
+              <h4 class="sub-title">Données à saisir (autour du QR code sur la facture)</h4>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">QR-IBAN</div>
+                  <div class="field-value code">CH31 3000 0002 2300 0284 1</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Référence QRR</div>
+                  <div class="field-value">Numéro de référence long (obligatoire)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Montant</div>
+                  <div class="field-value">Montant + CHF</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Adresse créancier</div>
+                  <div class="field-value">Vérifier que ça correspond à l'adresse à côté du QR code</div>
+                </div>
+              </div>
+              <div class="info-box rouge">
+                <div class="info-box-icon">⚠️</div>
+                <div>Toujours vérifier que l'adresse du créancier dans WinBiz correspond exactement à l'adresse figurant à côté du QR code sur la facture papier !</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">C</div>
+            <h3>Vérification finale – Liste des factures</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="timeline">
+                <div class="timeline-item">
+                  <h4>Générer la liste</h4>
+                  <p>Achats → Factures de créanciers → inscrire la plage de N° de documents saisis</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>Imprimer la liste</h4>
+                  <p>Imprimer le récapitulatif des factures saisies</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>Vérification à la calculatrice</h4>
+                  <p>Additionner manuellement toutes les factures. Le total manuel <strong>doit être identique</strong> au total de la liste WinBiz.</p>
+                </div>
+              </div>
+              <div class="info-box rouge">
+                <div class="info-box-icon">🔢</div>
+                <div>Ce contrôle est <strong>obligatoire</strong>. En cas de différence, revoir chaque saisie jusqu'à trouver l'écart.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('factures1', document.querySelector('[onclick*=\"factures1\"]'))">← Étape 1</button>
+        <button class="btn btn-primary" onclick="showSection('factures3', document.querySelector('[onclick*=\"factures3\"]'))">Suivant : Cash-Flow →</button>
+      </div>
+    </section>
+
+    <!-- ════ FACTURES 3 ════ -->
+    <section id="sec-factures3" class="section">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <div class="section-title-wrap">
+          <h2>Factures – 3e étape</h2>
+          <p class="section-subtitle">Saisie dans le Cash-Flow Excel</p>
+        </div>
+        <span class="section-tag tag-comptable">Comptabilité</span>
+      </div>
+
+      <div class="info-box bleu">
+        <div class="info-box-icon">📊</div>
+        <div>Le fichier Excel <strong>Cash-Flow</strong> permet de savoir quand payer chaque facture et d'anticiper les sorties d'argent.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Inscrire la date sur la facture papier</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Sur chaque facture, inscrire la semaine de paiement et la date limite dans le format suivant :</p>
+              <div class="info-box gris">
+                <div class="info-box-icon">📝</div>
+                <div style="font-family:monospace; font-size:18px; font-weight:700; margin-bottom:6px;">1 / 05.03</div>
+                <div>
+                  <strong>1</strong> = numéro de semaine (1, 2, 3 ou 4)<br>
+                  <strong>05.03</strong> = date limite de paiement (5 mars)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Classer dans le classeur « Factures à payer »</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Classer la facture sous le séparateur correspondant à la semaine de paiement.</p>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Séparateur Semaine 1</div>
+                  <div class="field-value">Factures à payer en semaine 1</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Séparateur Semaine 2</div>
+                  <div class="field-value">Factures à payer en semaine 2</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Séparateur Semaine 3</div>
+                  <div class="field-value">Factures à payer en semaine 3</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Séparateur Semaine 4</div>
+                  <div class="field-value">Factures à payer en semaine 4</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">3</div>
+            <h3>Saisir dans le tableau Excel Cash-Flow</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Dans le fichier <strong>Cash-Flow.xlsx</strong>, ajouter une ligne par facture avec les informations suivantes :</p>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Colonne A (Semaine)</div>
+                  <div class="field-value code">1</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Colonne B (Date paiement exacte)</div>
+                  <div class="field-value code">05.03.2025</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Colonne C (Nom fournisseur + N° facture)</div>
+                  <div class="field-value">Maagtechnic - 13484281</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Colonne D (Montant)</div>
+                  <div class="field-value">404.50</div>
+                </div>
+              </div>
+              <hr class="divider">
+              <h4 class="sub-title">Tampon WinBiz</h4>
+              <div class="info-box vert">
+                <div class="info-box-icon">🔖</div>
+                <div>Une fois les 3 étapes complétées, apposer le <strong>tampon WINBIZ</strong> sur la facture papier pour indiquer qu'elle a été prise en charge.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('factures2', document.querySelector('[onclick*=\"factures2\"]'))">← Saisie WinBiz</button>
+        <button class="btn btn-primary" onclick="showSection('paiement', document.querySelector('[onclick*=\"paiement\"]'))">Suivant : Paiements →</button>
+      </div>
+    </section>
+
+    <!-- ════ PAIEMENT ════ -->
+    <section id="sec-paiement" class="section">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <div class="section-title-wrap">
+          <h2>Paiement des factures</h2>
+          <p class="section-subtitle">Tous les mercredis</p>
+        </div>
+        <span class="section-tag tag-comptable">Comptabilité</span>
+      </div>
+
+      <div class="info-box rouge">
+        <div class="info-box-icon">📅</div>
+        <div><strong>Les paiements se font tous les mercredis.</strong> Consulter le Cash-Flow pour savoir quelles factures payer ce jour-là.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Identifier les factures à payer</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Ouvrir le fichier Excel <strong>Cash-Flow</strong>. Les factures à payer ce jour ont la mention <strong>« à payer le [date du jour] »</strong> dans la colonne E.</p>
+              <div class="two-col">
+                <div class="option-card">
+                  <h4>✅ À payer aujourd'hui</h4>
+                  <p>Mention « à payer le 05.03 » → traiter dans WinBiz immédiatement</p>
+                </div>
+                <div class="option-card">
+                  <h4>⏭️ À reporter</h4>
+                  <p>Aucune mention → reporter au mercredi suivant avec la mention <em>« Reportées depuis le [date] »</em> et classer dans le classeur <strong>Factures reportées</strong></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Saisir le paiement dans WinBiz</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>WinBiz</strong> <span class="nav-arrow">›</span> <span>Achats</span> <span class="nav-arrow">›</span> <span>Paiements aux créanciers</span> <span class="nav-arrow">›</span> <strong>Nouveau</strong>
+              </div>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Cliquer sur <strong>Nouveau</strong> pour créer un ordre de paiement</li>
+                <li onclick="toggleCheck(this)">Aller dans <strong>Sélection des documents</strong></li>
+                <li onclick="toggleCheck(this)">Sélectionner les factures à régler (avoir les factures papier pour vérifier les montants)</li>
+                <li onclick="toggleCheck(this)">Vérifier chaque montant avec la facture papier avant de confirmer</li>
+                <li onclick="toggleCheck(this)">Confirmer l'ordre de paiement</li>
+              </ul>
+              <div class="info-box bleu">
+                <div class="info-box-icon">📋</div>
+                <div>Il est <strong>recommandé d'avoir les factures papier à portée de main</strong> pour vérifier les montants lors de la sélection dans WinBiz.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('factures3', document.querySelector('[onclick*=\"factures3\"]'))">← Cash-Flow</button>
+        <button class="btn btn-primary" onclick="showSection('marchandise', document.querySelector('[onclick*=\"marchandise\"]'))">Suivant : Marchandise →</button>
+      </div>
+    </section>
+
+    <!-- ════ MARCHANDISE ════ -->
+    <section id="sec-marchandise" class="section">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <div class="section-title-wrap">
+          <h2>Entrée de marchandise</h2>
+          <p class="section-subtitle">Réception et mise en stock</p>
+        </div>
+        <span class="section-tag tag-stock">Stock</span>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Vérification physique de la marchandise</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Prendre le document <strong>« Commande interne/externe »</strong> et cocher à côté de chaque article reçu une fois que :</p>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Le produit reçu correspond au bon article commandé</li>
+                <li onclick="toggleCheck(this)">La quantité reçue correspond à la quantité commandée</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Transformer la commande en réception WinBiz</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>WinBiz</strong> <span class="nav-arrow">›</span> <span>Achats</span> <span class="nav-arrow">›</span> <span>Commandes aux fournisseurs</span> <span class="nav-arrow">›</span> <strong>Clic droit → Transformer</strong>
+              </div>
+              <p class="body-text">Trouver la commande correspondante, faire <strong>clic droit</strong> et choisir <strong>« Transformer le document »</strong> en sélectionnant le type <strong>Réception de marchandises</strong>.</p>
+              <div class="info-box vert">
+                <div class="info-box-icon">✅</div>
+                <div>Cette transformation met automatiquement à jour les quantités en stock dans WinBiz.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">3</div>
+            <h3>Imprimer et classer</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Imprimer la réception de marchandises</li>
+                <li onclick="toggleCheck(this)">Classer dans le classeur <strong>« Fournisseurs en attente de FA »</strong></li>
+              </ul>
+              <div class="info-box bleu">
+                <div class="info-box-icon">📁</div>
+                <div>Ce document sera ressorti lors de la <strong>saisie des factures</strong> (Étape 1). Il permet de faire le lien entre la commande et la facture du fournisseur.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('paiement', document.querySelector('[onclick*=\"paiement\"]'))">← Paiements</button>
+        <button class="btn btn-primary" onclick="showSection('envoi_factures', document.querySelector('[onclick*=\"envoi_factures\"]'))">Suivant : Envoi factures →</button>
+      </div>
+    </section>
+
+    <!-- ════ ENVOI FACTURES ════ -->
+    <section id="sec-envoi_factures" class="section">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <div class="section-title-wrap">
+          <h2>Envoi des factures aux clients</h2>
+          <p class="section-subtitle">Par e-mail ou par courrier – à vider chaque vendredi</p>
+        </div>
+        <span class="section-tag tag-client">Client</span>
+      </div>
+
+      <div class="info-box orange">
+        <div class="info-box-icon">📅</div>
+        <div>Le classeur <strong>« Clients à facturer »</strong> doit être <strong>entièrement vidé tous les vendredis</strong>.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Vérifier avant d'envoyer</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Vérifier sur <strong>DPD</strong> que la commande est bien livrée (pour les envois colis)</li>
+                <li onclick="toggleCheck(this)">Pour les <strong>retraits en magasin</strong> : s'assurer que la marchandise a bien été récupérée par le client</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Identifier le mode d'envoi</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Sur chaque document du classeur « Clients à facturer », un code indique le mode d'envoi :</p>
+              <div class="two-col">
+                <div class="option-card">
+                  <h4>📧 M = E-mail</h4>
+                  <p>Envoyer la facture par email à l'adresse <strong>FA : ...</strong> indiquée sur le bulletin de livraison ou dans les <strong>Notes publiques</strong> du profil client WinBiz</p>
+                </div>
+                <div class="option-card">
+                  <h4>✉️ X = Courrier</h4>
+                  <p>Imprimer la facture et envoyer par courrier postal à l'adresse du client</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">3</div>
+            <h3>Créer et envoyer la facture</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Créer la facture dans WinBiz en sélectionnant le bulletin de livraison / offre / confirmation correspondant</li>
+                <li onclick="toggleCheck(this)">Par <strong>e-mail</strong> : envoyer facture + QR code à l'adresse FA du client</li>
+                <li onclick="toggleCheck(this)">Par <strong>courrier</strong> : imprimer facture + QR code (bulletin de versement) et envoyer à l'adresse du client</li>
+              </ul>
+              <div class="info-box gris">
+                <div class="info-box-icon">ℹ️</div>
+                <div>Exception : <strong>VITEOS</strong> ne reçoit pas de QR code. Vérifier les conditions particulières de ce client.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('marchandise', document.querySelector('[onclick*=\"marchandise\"]'))">← Marchandise</button>
+        <button class="btn btn-primary" onclick="showSection('stocks', document.querySelector('[onclick*=\"stocks\"]'))">Suivant : Stocks →</button>
+      </div>
+    </section>
+
+    <!-- ════ STOCKS ════ -->
+    <section id="sec-stocks" class="section">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <div class="section-title-wrap">
+          <h2>Mouvements de stocks</h2>
+          <p class="section-subtitle">Corrections et ajustements dans WinBiz</p>
+        </div>
+        <span class="section-tag tag-stock">Stock</span>
+      </div>
+
+      <p class="body-text">Le magasinier note sur une feuille les différences constatées lors des contrôles de stock. Ces écarts doivent ensuite être saisis dans WinBiz pour maintenir le stock numérique à jour.</p>
+
+      <div class="nav-path">
+        <strong>WinBiz</strong> <span class="nav-arrow">›</span> <span>Stock</span> <span class="nav-arrow">›</span> <span>Mouvements de stock – Entrées/Sorties</span> <span class="nav-arrow">›</span> <strong>Nouveau</strong>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Saisir le mouvement de stock</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Article</div>
+                  <div class="field-value">Saisir le numéro d'article</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Mouvement – Sortie</div>
+                  <div class="field-value highlight">Mouvement négatif → moins de stock</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Mouvement – Entrée</div>
+                  <div class="field-value highlight">Mouvement positif → plus de stock</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Quantité</div>
+                  <div class="field-value">Saisir la différence constatée</div>
+                </div>
+              </div>
+              <div class="info-box bleu">
+                <div class="info-box-icon">💡</div>
+                <div>Ajouter autant de lignes que nécessaire (bouton <strong>Nouveau</strong>) pour corriger tous les articles identifiés par le magasinier.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Imprimer et classer</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Imprimer le résumé des mouvements de stock saisis</li>
+                <li onclick="toggleCheck(this)">Classer dans le classeur <strong>« Corrections de stocks »</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('envoi_factures', document.querySelector('[onclick*=\"envoi_factures\"]'))">← Envoi factures</button>
+        <button class="btn btn-primary" onclick="showSection('caisse', document.querySelector('[onclick*=\"caisse\"]'))">Suivant : Encaissement →</button>
+      </div>
+    </section>
+
+    <!-- ════ CAISSE ════ -->
+    <section id="sec-caisse" class="section">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <div class="section-title-wrap">
+          <h2>Calcul de l'encaissement journalier</h2>
+          <p class="section-subtitle">À faire chaque soir (ou le matin pour la veille)</p>
+        </div>
+        <span class="section-tag tag-quotidien">Quotidien</span>
+      </div>
+
+      <div class="info-box bleu">
+        <div class="info-box-icon">💵</div>
+        <div>Prendre les ventes en espèces (cash) dans le <strong>bac en bois situé au-dessus de la caisse</strong>.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">1</div>
+            <h3>Générer la liste dans WinBiz</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>WinBiz</strong> <span class="nav-arrow">›</span> <span>Ventes</span> <span class="nav-arrow">›</span> <span>Liste des encaissements</span>
+              </div>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Méthode de paiement</div>
+                  <div class="field-value highlight">Caisse (ventes en espèces uniquement)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Période</div>
+                  <div class="field-value">En général : la journée en cours</div>
+                </div>
+              </div>
+              <div class="info-box gris">
+                <div class="info-box-icon">ℹ️</div>
+                <div>Exception : si un seul encaissement en cash dans la journée, pas besoin de tirer la liste.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge">2</div>
+            <h3>Vérification et classement</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Additionner manuellement tous les encaissements en espèces du jour</li>
+                <li onclick="toggleCheck(this)">Vérifier que la somme manuelle = total sur la liste WinBiz</li>
+                <li onclick="toggleCheck(this)">Imprimer la liste</li>
+                <li onclick="toggleCheck(this)">Apposer un <strong>✓</strong> confirmant que tout est en ordre</li>
+                <li onclick="toggleCheck(this)">Agrafer la liste au-dessus de tous les bons de vente en espèces</li>
+                <li onclick="toggleCheck(this)">Classer dans le classeur <strong>« Factures + [mois] »</strong></li>
+              </ul>
+              <div class="info-box rouge">
+                <div class="info-box-icon">🔔</div>
+                <div>Cette opération est à réaliser <strong>tous les jours</strong> en fin de journée, ou le matin pour la veille.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('stocks', document.querySelector('[onclick*=\"stocks\"]'))">← Stocks</button>
+        <button class="btn btn-primary" onclick="showSection('docs', document.querySelector('[onclick*=\"docs\"]'))">Suivant : Documents →</button>
+      </div>
+    </section>
+
+    <!-- ════ DOCS COMMERCIAUX ════ -->
+    <section id="sec-docs" class="section">
+      <div class="section-header">
+        <div class="section-num">★</div>
+        <div class="section-title-wrap">
+          <h2>Documents commerciaux</h2>
+          <p class="section-subtitle">Référentiel des documents utilisés</p>
+        </div>
+        <span class="section-tag tag-client">Référence</span>
+      </div>
+
+      <div class="field-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+
+        <div class="step-card" style="margin:0;">
+          <div class="step-card-header" onclick="toggleStep(this)" style="cursor:pointer;">
+            <div class="step-badge" style="background:var(--bleu);">📋</div>
+            <h3>Confirmation de commande</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Valide et récapitule les détails de la commande client. Confirme la réception, vérifie les articles/quantités/adresse et informe que la commande est en traitement.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" style="margin:0;">
+          <div class="step-card-header" onclick="toggleStep(this)" style="cursor:pointer;">
+            <div class="step-badge" style="background:var(--vert-ok);">🚚</div>
+            <h3>Bulletin de livraison</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Remis aux clients qui règlent par facture (min. 30 CHF), en magasin ou avec le colis. Inclut : articles, adresse, références, mode de retrait, frais éventuels (coupe, emballage, port).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" style="margin:0;">
+          <div class="step-card-header" onclick="toggleStep(this)" style="cursor:pointer;">
+            <div class="step-badge" style="background:var(--orange);">🔧</div>
+            <h3>Fiche de travail</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Document <strong>interne</strong> pour le magasinier. Contient : N° d'article, quantité, prix (client / artisan / grossiste), adresse, références. Sert à la préparation des commandes.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" style="margin:0;">
+          <div class="step-card-header" onclick="toggleStep(this)" style="cursor:pointer;">
+            <div class="step-badge" style="background:#8E44AD;">💼</div>
+            <h3>Offre</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Présente les produits avec prix et conditions. Rédigée principalement par <strong>Frédéric Bernède</strong>. Émise à la demande des clients avant finalisation de commande.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" style="margin:0;">
+          <div class="step-card-header" onclick="toggleStep(this)" style="cursor:pointer;">
+            <div class="step-badge" style="background:var(--rouge);">🧾</div>
+            <h3>Facture client</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Classeur « Clients à facturer » vidé <strong>chaque vendredi</strong>. Code <strong>M</strong> = e-mail, <strong>X</strong> = courrier. Toujours envoyer facture + QR code (sauf VITEOS).</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('caisse', document.querySelector('[onclick*=\"caisse\"]'))">← Encaissement</button>
+        <button class="btn btn-primary" onclick="showSection('webador', document.querySelector('[onclick*=\"webador\"]'))">Suivant : Site Web →</button>
+      </div>
+    </section>
+
+    <!-- ════ WEBADOR ════ -->
+    <section id="sec-webador" class="section">
+      <div class="section-header">
+        <div class="section-num">W</div>
+        <div class="section-title-wrap">
+          <h2>Site Web – Webador</h2>
+          <p class="section-subtitle">Modifier bernede-caoutchouc.ch facilement</p>
+        </div>
+        <span class="section-tag" style="background:#EBF5FB;color:#1A5276;">🌐 Web</span>
+      </div>
+
+      <div class="info-box bleu">
+        <div class="info-box-icon">🔗</div>
+        <div>Accès à l'éditeur : <strong>webador.com</strong> → Se connecter → Mon site → <strong>Éditeur</strong>. Le site est publié en live, toute modification est visible immédiatement après avoir cliqué <strong>Enregistrer</strong>.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#2980B9;">1</div>
+            <h3>Modifier la bannière principale (slider)</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>Éditeur</strong> <span class="nav-arrow">›</span> <span>Cliquer sur la bannière</span> <span class="nav-arrow">›</span> <strong>Panneau gauche « Bannière »</strong>
+              </div>
+              <h4 class="sub-title">Ajouter / remplacer une photo dans le slider</h4>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Dans le panneau gauche, aller dans <strong>Photos</strong></li>
+                <li onclick="toggleCheck(this)">Cliquer sur <strong>+</strong> pour ajouter une nouvelle image (format JPG/PNG recommandé, min. 1920×600px)</li>
+                <li onclick="toggleCheck(this)">Pour supprimer une image : survol → icône corbeille</li>
+                <li onclick="toggleCheck(this)">Réordonner par glisser-déposer</li>
+                <li onclick="toggleCheck(this)">Activer/désactiver <strong>Lecture automatique</strong> selon besoin</li>
+                <li onclick="toggleCheck(this)">Choisir la transition : <strong>Estomper</strong> (fondu) ou <strong>Faire glisser</strong></li>
+                <li onclick="toggleCheck(this)">Cliquer <strong>Enregistrer</strong> (bouton vert en bas à gauche)</li>
+              </ul>
+              <div class="info-box orange">
+                <div class="info-box-icon">⚠️</div>
+                <div>Toujours activer <strong>Arrière-plan sombre</strong> pour que le texte blanc sur la bannière reste lisible.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#2980B9;">2</div>
+            <h3>Modifier le texte d'une page</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>Pages</strong> (en haut) <span class="nav-arrow">›</span> <span>Sélectionner la page</span> <span class="nav-arrow">›</span> <strong>Double-cliquer sur le texte</strong>
+              </div>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Aller dans l'onglet <strong>Pages</strong> en haut de l'éditeur</li>
+                <li onclick="toggleCheck(this)">Choisir la page à modifier (Accueil, Nos Produits, À propos…)</li>
+                <li onclick="toggleCheck(this)">Double-cliquer sur le bloc texte à modifier</li>
+                <li onclick="toggleCheck(this)">Éditer le texte directement dans le bloc</li>
+                <li onclick="toggleCheck(this)">Utiliser la barre de formatage : Gras, Italique, Taille, Couleur</li>
+                <li onclick="toggleCheck(this)">Cliquer hors du bloc pour désélectionner, puis <strong>Enregistrer</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#2980B9;">3</div>
+            <h3>Ajouter / modifier un produit dans la boutique</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>Webshop</strong> (en haut) <span class="nav-arrow">›</span> <span>Produits</span> <span class="nav-arrow">›</span> <strong>+ Ajouter un produit</strong>
+              </div>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Nom du produit</div>
+                  <div class="field-value">Ex : Tuyau EPDM 20mm noir</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Description</div>
+                  <div class="field-value">Caractéristiques, matière, usage</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Prix</div>
+                  <div class="field-value">Prix public TTC (CHF)</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Photos</div>
+                  <div class="field-value">Min. 1 photo, fond blanc préférable</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Catégorie</div>
+                  <div class="field-value">Assigner à la bonne catégorie de produit</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Stock</div>
+                  <div class="field-value">Activer gestion stock si applicable</div>
+                </div>
+              </div>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Remplir tous les champs</li>
+                <li onclick="toggleCheck(this)">Ajouter au moins une photo du produit</li>
+                <li onclick="toggleCheck(this)">Vérifier le prix et la catégorie</li>
+                <li onclick="toggleCheck(this)">Cliquer <strong>Enregistrer</strong></li>
+                <li onclick="toggleCheck(this)">Vérifier l'affichage sur le site publié (ouvrir dans un nouvel onglet)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#2980B9;">4</div>
+            <h3>Modifier la barre de navigation / menus</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>Pages</strong> <span class="nav-arrow">›</span> <span>Gérer les pages</span> <span class="nav-arrow">›</span> <strong>Glisser-déposer pour réordonner</strong>
+              </div>
+              <p class="body-text">La barre de navigation actuelle contient : <strong>Accueil · Nos Produits · Blogs · À propos · Contact · Collaborations et engagements</strong></p>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Pour renommer une page : cliquer sur l'icône crayon à côté du nom</li>
+                <li onclick="toggleCheck(this)">Pour masquer une page du menu : décocher l'œil visible</li>
+                <li onclick="toggleCheck(this)">Pour réordonner : glisser-déposer les pages dans la liste</li>
+                <li onclick="toggleCheck(this)">Enregistrer et vérifier sur le site publié</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#2980B9;">5</div>
+            <h3>Modifier les paramètres SEO & Titre de page</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>Paramètres</strong> <span class="nav-arrow">›</span> <span>SEO</span>
+              </div>
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Titre SEO</div>
+                  <div class="field-value">Bernède Caoutchouc – Tuyaux & Joints Neuchâtel</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Description méta</div>
+                  <div class="field-value">160 caractères max décrivant l'activité</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Mots-clés</div>
+                  <div class="field-value">tuyau caoutchouc, joint EPDM, Neuchâtel…</div>
+                </div>
+              </div>
+              <div class="info-box vert">
+                <div class="info-box-icon">💡</div>
+                <div>Un bon titre SEO aide Google à référencer le site. Le garder à jour avec les produits principaux vendus.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#C0392B;">!</div>
+            <h3>Points importants à retenir</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="two-col">
+                <div class="option-card">
+                  <h4>✅ Toujours faire</h4>
+                  <p>Cliquer <strong>Enregistrer</strong> avant de quitter l'éditeur · Vérifier le rendu sur mobile (bouton aperçu mobile) · Tester les liens après modification</p>
+                </div>
+                <div class="option-card">
+                  <h4>❌ Ne jamais faire</h4>
+                  <p>Fermer l'onglet sans enregistrer · Supprimer une page sans vérifier si elle est liée depuis d'autres pages · Changer le nom de domaine sans contact avec Webador</p>
+                </div>
+              </div>
+              <div class="info-box rouge">
+                <div class="info-box-icon">🆘</div>
+                <div>En cas de problème : <strong>Annuler</strong> (bouton gris en bas) pour revenir à l'état précédent. Si le site est cassé, contacter le support Webador via l'onglet <strong>Assistance</strong>.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('docs', document.querySelector('[onclick*=\"docs\"]'))">← Documents</button>
+        <button class="btn btn-primary" onclick="showSection('ia', document.querySelector('[onclick*=\"ia\"]'))">Suivant : IA & Automatisation →</button>
+      </div>
+    </section>
+
+    <!-- ════ IA ════ -->
+    <section id="sec-ia" class="section">
+      <div class="section-header">
+        <div class="section-num">IA</div>
+        <div class="section-title-wrap">
+          <h2>IA & Automatisation</h2>
+          <p class="section-subtitle">Utiliser Claude pour gagner du temps sur les tâches répétitives</p>
+        </div>
+        <span class="section-tag" style="background:#F4ECF7;color:#6C3483;">🤖 Productivité</span>
+      </div>
+
+      <div class="info-box" style="background:linear-gradient(135deg,#F4ECF7,#EBF5FB);border-left:4px solid #8E44AD;">
+        <div class="info-box-icon">🤖</div>
+        <div><strong>Claude (claude.ai)</strong> est un assistant IA accessible depuis n'importe quel navigateur, sans installation. Gratuit pour un usage basique, ~20 CHF/mois pour la version Pro. Il permet de traiter des fichiers Excel, rédiger des emails, analyser des données et automatiser des tâches répétitives en quelques secondes.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#8E44AD;">📊</div>
+            <h3>Traitement de fichiers Excel avec Claude</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Claude peut lire, analyser et transformer vos fichiers Excel directement. Voici le mini-process :</p>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <h4>1. Ouvrir claude.ai dans le navigateur</h4>
+                  <p>Se connecter sur <strong>claude.ai</strong>. Cliquer sur le trombone 📎 pour joindre un fichier.</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>2. Joindre le fichier Excel</h4>
+                  <p>Glisser le fichier .xlsx directement dans la conversation ou utiliser le bouton d'upload.</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>3. Décrire ce que vous voulez obtenir</h4>
+                  <p>Écrire votre demande en français naturel. Plus c'est précis, meilleur sera le résultat.</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>4. Récupérer le résultat</h4>
+                  <p>Claude génère le tableau transformé, les formules, ou une analyse. Copier dans Excel.</p>
+                </div>
+              </div>
+
+              <h4 class="sub-title">Exemples de prompts à copier-coller</h4>
+              <div class="steps-container" style="gap:10px;">
+                <div class="info-box gris" style="cursor:pointer;" onclick="copyPrompt(this)">
+                  <div class="info-box-icon">💬</div>
+                  <div>
+                    <strong>Analyse Cash-Flow :</strong><br>
+                    <em>« Voici mon fichier Cash-Flow. Fais-moi un résumé : quelles sont les semaines où les sorties d'argent sont les plus élevées ? Quels fournisseurs représentent le plus gros volume sur les 3 derniers mois ? »</em>
+                    <br><small style="color:var(--gris-clair);">👆 Cliquer pour copier</small>
+                  </div>
+                </div>
+                <div class="info-box gris" style="cursor:pointer;" onclick="copyPrompt(this)">
+                  <div class="info-box-icon">💬</div>
+                  <div>
+                    <strong>Nettoyage de données :</strong><br>
+                    <em>« Ce fichier contient des doublons et des noms de clients mal orthographiés. Nettoie-le, supprime les doublons et génère-moi le fichier corrigé. »</em>
+                    <br><small style="color:var(--gris-clair);">👆 Cliquer pour copier</small>
+                  </div>
+                </div>
+                <div class="info-box gris" style="cursor:pointer;" onclick="copyPrompt(this)">
+                  <div class="info-box-icon">💬</div>
+                  <div>
+                    <strong>Statistiques de ventes :</strong><br>
+                    <em>« Analyse ce fichier de ventes. Crée un tableau récapitulatif par mois avec : chiffre d'affaires total, nombre de commandes, client le plus actif, article le plus vendu. »</em>
+                    <br><small style="color:var(--gris-clair);">👆 Cliquer pour copier</small>
+                  </div>
+                </div>
+                <div class="info-box gris" style="cursor:pointer;" onclick="copyPrompt(this)">
+                  <div class="info-box-icon">💬</div>
+                  <div>
+                    <strong>Stocks à réapprovisionner :</strong><br>
+                    <em>« Voici mon inventaire. Identifie les articles dont le stock est inférieur à 10 unités et génère une liste de commande à envoyer aux fournisseurs. »</em>
+                    <br><small style="color:var(--gris-clair);">👆 Cliquer pour copier</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#8E44AD;">📈</div>
+            <h3>Statistiques & gains de temps identifiés</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <p class="body-text">Estimation du temps gagné par semaine avec une utilisation régulière de l'IA :</p>
+              <table class="code-table">
+                <tr><th>Tâche actuelle</th><th>Temps actuel</th><th>Avec IA</th><th>Gain estimé</th></tr>
+                <tr><td>Mise à jour Cash-Flow</td><td>~45 min/sem</td><td>~10 min</td><td><span class="badge badge-vert">−35 min</span></td></tr>
+                <tr><td>Envoi d'offres manuelles</td><td>~2h/sem</td><td>~20 min</td><td><span class="badge badge-vert">−100 min</span></td></tr>
+                <tr><td>Rédaction emails clients</td><td>~1h/sem</td><td>~15 min</td><td><span class="badge badge-vert">−45 min</span></td></tr>
+                <tr><td>Analyse stocks / commandes</td><td>~1h/sem</td><td>~10 min</td><td><span class="badge badge-vert">−50 min</span></td></tr>
+                <tr><td>Corrections Excel / doublons</td><td>~30 min/sem</td><td>~5 min</td><td><span class="badge badge-vert">−25 min</span></td></tr>
+              </table>
+              <div class="info-box vert">
+                <div class="info-box-icon">⏱️</div>
+                <div><strong>~4h30 de temps libéré par semaine</strong>, soit environ 18h par mois à consacrer à des tâches à plus haute valeur ajoutée (relation client, développement commercial…)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#8E44AD;">✉️</div>
+            <h3>Rédaction d'emails & communications avec Claude</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Relance de paiement</div>
+                  <div class="field-value">« Rédige un email de relance poli pour une facture impayée depuis 15 jours, montant CHF 450 »</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Confirmation de commande</div>
+                  <div class="field-value">« Rédige une confirmation pour le client X, 50m de tuyau EPDM 20mm, livraison jeudi »</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Réponse à une réclamation</div>
+                  <div class="field-value">« Le client se plaint d'un délai. Rédige une réponse professionnelle et empathique »</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Annonce promo site web</div>
+                  <div class="field-value">« Rédige un texte de promotion pour la liquidation Tuyau Vertaflex 2025 »</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#8E44AD;">🔮</div>
+            <h3>Améliorations futures recommandées</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="timeline">
+                <div class="timeline-item">
+                  <h4>🟢 Court terme (maintenant)</h4>
+                  <p>Utiliser Claude pour analyser le Cash-Flow chaque semaine · Rédiger les emails récurrents · Nettoyer les listes clients WinBiz</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>🟡 Moyen terme (3-6 mois)</h4>
+                  <p>Connecter WinBiz avec une feuille Google Sheets pour suivi en temps réel · Automatiser les relances de factures par email · Créer des modèles d'offres intelligents avec FollowOffer</p>
+                </div>
+                <div class="timeline-item">
+                  <h4>🔴 Long terme (6-12 mois)</h4>
+                  <p>Tableau de bord KPI automatique (CA mensuel, top clients, top produits) · Chat IA sur le site Webador pour répondre aux questions produits · Prévisions de stock automatiques basées sur l'historique</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('webador', document.querySelector('[onclick*=\"webador\"]'))">← Site Webador</button>
+        <button class="btn btn-primary" onclick="showSection('offres', document.querySelector('[onclick*=\"offres\"]'))">Suivant : Offres automatiques →</button>
+      </div>
+    </section>
+
+    <!-- ════ OFFRES AUTOMATIQUES ════ -->
+    <section id="sec-offres" class="section">
+      <div class="section-header">
+        <div class="section-num">FO</div>
+        <div class="section-title-wrap">
+          <h2>Offres automatiques – FollowOffer</h2>
+          <p class="section-subtitle">followoffer.com · Conçu pour les PME suisses</p>
+        </div>
+        <span class="section-tag" style="background:#EAFAF1;color:#1E8449;">📨 Commercial</span>
+      </div>
+
+      <div class="info-box vert">
+        <div class="info-box-icon">🇨🇭</div>
+        <div><strong>FollowOffer</strong> est un SaaS suisse conçu pour les PME romandes. La promesse : <em>« Chaque offre envoyée mérite un vrai suivi »</em>. Envoyez vos offres, sachez quand elles sont lues, relancez au bon moment — automatiquement.</div>
+      </div>
+
+      <div class="steps-container">
+
+        <div class="step-card open">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#27AE60;">★</div>
+            <h3>Points forts identifiés</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="field-grid">
+                <div class="field-item">
+                  <div class="field-label">Suivi de lecture</div>
+                  <div class="field-value">Savoir exactement quand l'offre est lue par le client</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Relances automatiques</div>
+                  <div class="field-value">Relancer au bon moment — automatiquement</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Offres gratuites</div>
+                  <div class="field-value">5 offres gratuites, sans carte bancaire</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Rapidité</div>
+                  <div class="field-value">Opérationnel en 5 minutes</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Support</div>
+                  <div class="field-value">Support suisse 7j/7</div>
+                </div>
+                <div class="field-item">
+                  <div class="field-label">Sécurité</div>
+                  <div class="field-value">Données sécurisées, hébergement suisse</div>
+                </div>
+              </div>
+              <div class="info-box bleu">
+                <div class="info-box-icon">📊</div>
+                <div>Plus de <strong>107 PME romandes</strong> font confiance à FollowOffer. Note : <strong>4.7/5</strong>.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-header" onclick="toggleStep(this)">
+            <div class="step-badge" style="background:#27AE60;">1</div>
+            <h3>Démarrer – Premiers pas</h3>
+            <div class="step-toggle">▼</div>
+          </div>
+          <div class="step-card-body">
+            <div class="step-card-body-inner">
+              <div class="nav-path">
+                <strong>followoffer.com</strong> <span class="nav-arrow">›</span> <span>Commencer gratuitement</span> <span class="nav-arrow">›</span> <strong>Créer un compte</strong>
+              </div>
+              <ul class="checklist">
+                <li onclick="toggleCheck(this)">Aller sur <strong>followoffer.com</strong> et cliquer <strong>Commencer gratuitement</strong></li>
+                <li onclick="toggleCheck(this)">Créer le compte avec l'adresse email professionnelle de Bernède Caoutchouc</li>
+                <li onclick="toggleCheck(this)">Configurer le profil entreprise (logo, nom, adresse, coordonnées)</li>
+                <li onclick="toggleCheck(this)">Envoyer une première offre test (5 disponibles gratuitement, sans carte)</li>
+                <li onclick="toggleCheck(this)">Explorer les tarifs via l'onglet <strong>Tarifs</strong> sur le site pour choisir la formule adaptée</li>
+              </ul>
+              <div class="info-box vert">
+                <div class="info-box-icon">⚡</div>
+                <div>FollowOffer est opérationnel en <strong>5 minutes</strong>. L'interface est en français, pensée pour les PME suisses romandes.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bottom-nav">
+        <button class="btn btn-secondary" onclick="showSection('ia', document.querySelector('[onclick*=\'ia\']'))">← IA & Automatisation</button>
+        <button class="btn btn-primary" onclick="showSection('home', document.querySelector('[onclick*=\'home\']'))">🏠 Retour à l'accueil</button>
+      </div>
+    </section>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const sections = ['home','dpd','client','factures1','factures2','factures3','paiement','marchandise','envoi_factures','stocks','caisse','docs','webador','ia','offres'];
+  const visited = new Set(['home']);
+
+  function showSection(id, navEl) {
+    // Hide all
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    // Show target
+    const target = document.getElementById('sec-' + id);
+    if (target) target.classList.add('visible');
+
+    // Update nav
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    // Find the right nav item
+    const allNavItems = document.querySelectorAll('.nav-item');
+    allNavItems.forEach(ni => {
+      if (ni.getAttribute('onclick') && ni.getAttribute('onclick').includes("'" + id + "'")) {
+        ni.classList.add('active');
+      }
+    });
+
+    visited.add(id);
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateProgress() {
+    const count = Math.max(0, visited.size - 1); // exclude home
+    const total = sections.length - 1;
+    const pct = Math.round((count / total) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = count + ' / ' + total + ' sections';
+  }
+
+  function toggleStep(headerEl) {
+    const card = headerEl.closest('.step-card');
+    card.classList.toggle('open');
+  }
+
+  function toggleCheck(li) {
+    li.classList.toggle('checked');
+  }
+
+  function copyPrompt(el) {
+    const text = el.querySelector('em').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const s = el.querySelector('small');
+      s.textContent = '✅ Copié !';
+      setTimeout(() => s.textContent = '👆 Cliquer pour copier', 2000);
+    });
+  }
+
+</script>
+</body>
+</html>
